@@ -1,8 +1,14 @@
 ## Creates a Wifi access point
 ## Serves a web page with the device's name and a random fortune cookie
 
-ap_ssid="TDweb"
+ap_ssid="TDweb-%s" % username
 ap_password="5GforAll"
+
+fortunes = [
+    "This is the first",
+    "Have fortune #2",
+    "Third time is a charm"
+]
 
 import network
 
@@ -18,12 +24,9 @@ except:
 import esp
 esp.osdebug(None)
 
+import random
 import gc
 gc.collect()
-
-from _fortune import fortunes
-import random
-
 
 while ap.active() == False:
   pass
@@ -31,7 +34,7 @@ while ap.active() == False:
 print('Connection successful')
 print(ap.ifconfig())
 TD.clear()
-TD.typeset("SSID: %s \nhttp://%s/" % (ap_ssid, ap.ifconfig()[0]))
+TD.typeset("SSID: %s\nPW: %s\nhttp://%s/" % (ap_ssid, ap_password, ap.ifconfig()[0]))
 
 def web_page():
   html = """<html><head>
@@ -61,5 +64,5 @@ while True:
   conn.close()
   
   webcounter += 1
-  TD.typeset("Page views: %d" % webcounter, 0, 2)
-  TD.typeset("From: %s" % addr[0], 0, 3)
+  TD.typeset("Page views: %d" % webcounter, 0, 3)
+  TD.typeset("Last from: %s" % addr[0], 0, 4)

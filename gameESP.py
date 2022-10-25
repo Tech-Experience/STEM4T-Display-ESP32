@@ -294,7 +294,7 @@ class gameESP():
         'd6': 1175
     }
 
-    def __init__(self):
+    def __init__(self, rotation=1):
         # True =  SPI display, False = I2C display
         self.ESP32 = True
         self.paddle2 = False
@@ -339,7 +339,7 @@ class gameESP():
         # configure oled display SPI ST7789
         self.spi = SPI(1, baudrate=30000000, sck=Pin(18), mosi=Pin(19))
         self.display = tft_config.config(0)
-        self.display.rotation(0)
+        self.display.rotation(rotation)
         self.display.init()
 
         self.PinBtnA  = Pin(0, Pin.IN, Pin.PULL_UP)
