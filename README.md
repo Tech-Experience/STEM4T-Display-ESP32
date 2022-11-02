@@ -50,4 +50,4 @@ _test_button.py : Shows single, double, triple, and long click events
 
 _w_emotichat.py : First device creates a simple chat client for subsequent devices to connect to.  Button 1 chooses an emoticon to send, button 2 sends it.  Unfortunately, a threading bug on the first (server) device stops everything if it sends more than one message, but all the other client devices can share emoticons to their hearts' content.
 
-_web_server.py : creates a WiFi access point that serves a simple web page.  Connect a phone or computer to the wifi access point and visit https://192.168.4.1/ to view a random fortune.
+_web_server.py : creates a WiFi access point that serves a simple web page.  Connect a phone or computer to the wifi access point and visit http://192.168.4.1/ to view a random fortune.
