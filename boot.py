@@ -24,7 +24,7 @@ TD = tft_typeset.TDisplay()
 
 TD.typeset("Hello", 4, 1, font=tft_typeset.font2)
 TD.typeset(username, 3, 2, font=tft_typeset.font2)
-TD.typeset("https://tinyurl.com/y78ymcmz", 0, 7, fg=TMOMAGENTA)
+TD.typeset("https://tinyurl.com/iotdisplay", 0, 7, fg=TMOMAGENTA)
 
 # Pause before proceeding to main.py
 utime.sleep(1)
