@@ -1,5 +1,5 @@
 # STEM4T-Display-ESP32
-Companion repository for [MicroPython_for_the_T-Display-ESP32](https://tinyurl.com/y78ymcmz) STEM learning module
+Companion repository for [MicroPython_for_the_T-Display-ESP32](https://tinyurl.com/iotdisplay) STEM learning module
 ---
 micropython samples for TTGO T-Display ESP32 device companion for STEM learning module
 
@@ -34,13 +34,15 @@ _g_roids.py : asteroids game.  Press both buttons to activate thrusters.
 
 _g_snake.py : eat the apples.  Use button 2 to select an AI 
 
-_g_tetris.py : This doesn't actually work since I broke some game logic while upscaling it, but it plays music if you connect a small speaker to pin 26 and GND, so I kept it.  Use button 2 to select music.
+_g_tet.py : working version of Tetris ported from https://github.com/VolosR/TTGOTetris/blob/main/TTgOTetris.ino .  But no music (yet)
+
+_g_tetris.py : Non-functional Tetris demo - I broke some game logic while upscaling it for the T-Display.  However, it plays music if you connect a small speaker to pin 26 and GND, so I kept it.  Button 2 selects music on Tetris menu.
 
 _mood.py : emoticon display.
 
 _photos.py : displays any 240x135 .jpg photos you uploaded into photos_240x135 directory using the ampy utility.
 
-_photos_nasa.py : displays photos in the nasa_240x135 directory. I removed the clock from Russ Hughes example so it wouldn't need networking.
+_photos_nasa.py : displays photos in the nasa_240x135 directory. I removed the clock from Russ Hughes's example so it wouldn't require wifi networking.
 
 _rolldice.py : D6 roll
 
