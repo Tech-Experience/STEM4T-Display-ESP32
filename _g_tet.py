@@ -1,7 +1,6 @@
-# micropython port of
+# micropython port based on https://github.com/VolosR/TTGOTetris/blob/main/TTgOTetris.ino
 # TETRIS with M5STACK : 2018.01.20 Transplant by macsbug
 
-import math
 import random
 import utime
 import micropython
@@ -46,8 +45,7 @@ block = Block()
 
 rot = 0
 fall_cnt = 0
-started = True
-game_over = False
+game_over = 0     # timeout before starting a new game
 but_LEFT = False
 but_RIGHT = False
 but_A = False
@@ -175,7 +173,7 @@ def KeyPadLoop() -> bool:
 
 def PutStartPos():
   global pos, block, blocks, rot, turbo
-  pos.X = 4
+  pos.X = random.randint(1,7)
   pos.Y = 1
   turbo = False
   randblock = random.randint(0,len(blocks)-1)
@@ -184,14 +182,14 @@ def PutStartPos():
 
 
 def GameOver():
-  global Width, Height, screen, game_over
-  print("Game Over")
+  global Width, Height, screen
+  utime.sleep(1)
+  # Cycle colors to blank
   for i in range(Width):
     for j in range(Height):
       if (screen[i][j] != 0):
-        screen[i][j] = 3
+        screen[i][j] = (screen[i][j] + 1) % 8
   Draw()
-  game_over = True
   TD.typeset("GAME".format(score), 2, 3, font=tft_typeset.font2, fg=st7789.RED)
   TD.typeset("OVER".format(score), 2, 4, font=tft_typeset.font2, fg=st7789.RED)
 
@@ -203,15 +201,6 @@ def GetNextPosRot(rot):
   fall_cnt = (fall_cnt + 1) % 10
   if (fall_cnt == 0 or turbo):
     pnext_pos.Y += 1
-    
-## DEBUG dump
-#   print(screen)
-#   print(f"X=%d Y=%d" % (pos.X, pos.Y))
-#   print(pnext_pos)
-#   print(type(pnext_pos))
-#   print(f"print : %s" % pnext_pos)
-#   print(f"but_LEFT=%s but_RIGHT=%s" % (but_LEFT, but_RIGHT)) 
-    
   else:
     if but_LEFT == True:
       but_LEFT = False
@@ -265,9 +254,7 @@ def GetSquares(block, pos, rot):
 
 
 def ReviseScreen(next_pos, next_rot):
-  global pos, rot, block, screen, started, game_over
-  if (not started):
-    return
+  global pos, rot, block, screen, game_over, score
   for i in range(4):
     screen[pos.X + block.square[rot][i].X][pos.Y + block.square[rot][i].Y] = 0
   (movable, next_squares) = GetSquares(block, next_pos, next_rot)
@@ -287,9 +274,28 @@ def ReviseScreen(next_pos, next_rot):
       if not movable:
         for i in range(4):
           screen[pos.X + block.square[rot][i].X][pos.Y + block.square[rot][i].Y] = block.color
-        GameOver()
-  if not game_over:
+        game_over = 10
+        print(f"Final score: %d" % score)
+  if game_over <= 0:
     Draw()
+
+def ResetGame():
+  global game_over, game_speed, buttons, Height, Width, score, lvl
+  global turbo, screen, pos, block, rot
+  ## Reset for new game
+  for j in range(Height):
+    for i in range(Width):
+      screen[i][j] = 0
+      prev_screen[i][j] = 0
+  game_over = 0
+  score = 0
+  game_speed = game_speed_init
+  lvl = 1
+  PutStartPos()
+  for i in range(4):
+    screen[pos.X + block.square[rot][i].X][pos.Y + block.square[rot][i].Y] = block.color
+  DrawFrame()
+  Draw(refresh=True)
 
 
 def setup():
@@ -305,33 +311,19 @@ def setup():
 
 
 def loop():
-  global game_over, game_speed, buttons, Height, Width, score, lvl
-  global turbo, screen, pos, block, rot, started, but_LEFT
-  if (game_over):
-    if (buttons.left.value() == Pin.DRIVE_0):
-      ## Reset for new game
-      for j in range(Height):
-        for i in range(Width):
-          screen[i][j] = 0
-          prev_screen[i][j] = 0
-      game_over = False
-      score = 0
-      game_speed = game_speed_init
-      lvl = 1
-      PutStartPos()
-      for i in range(4):
-        screen[pos.X + block.square[rot][i].X][pos.Y + block.square[rot][i].Y] = block.color
-      DrawFrame()
-      Draw(refresh=True)  
+  global game_over, buttons, game_speed, turbo, pos, rot
+  if game_over > 0:
+    GameOver() 
+    if (buttons.left.value() == Pin.DRIVE_0) or game_over == 1:
+      ResetGame()  # start a new game
+    if (buttons.right.value() == Pin.DRIVE_0):
+      game_over += 1000  # let user revel in their score a bit longer
+    game_over -= 1
     return
 
   KeyPadLoop()
-  if (but_LEFT):
-    started = True
-  if (not started):
-    pass
 
-  if(not game_over):
+  if game_over <= 0:
     (next_pos, next_rot) = GetNextPosRot(rot)
     ReviseScreen(next_pos, next_rot)
     gc.collect()
@@ -344,4 +336,3 @@ def loop():
 setup()
 while True:
   loop()
-
