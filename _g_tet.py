@@ -15,12 +15,18 @@ gc.collect()
 tft = tft_config.config(1, buffer_size=64*64*2)
 buttons = tft_buttons.Buttons()
 
-Length = micropython.const(11)     # the number of pixels for a side of a block
-Width  = micropython.const(10)     # the number of horizontal blocks
-Height = micropython.const(20)     # the number of vertical blocks
-screen = [[0 for j in range(Height)] for i in range(Width)]    # it shows color-numbers of all positions
+Length = micropython.const(11)    # the number of pixels for a side of a block
+Width  = micropython.const(10)    # the number of horizontal blocks
+Height = micropython.const(20)    # the number of vertical blocks
+# playing field storing color of each space
+screen = [[0 for j in range(Height)] for i in range(Width)]    
 prev_screen = [[0 for j in range(Height)] for i in range(Width)]
 
+# Parametric frame dimensions
+TopLeft = (Length, tft_typeset.font1.HEIGHT+2)
+TopRight = (Length + (Length * Width), tft_typeset.font1.HEIGHT+2)
+BotLeft = (Length, tft_typeset.font1.HEIGHT+2 + (Length * Height))
+BotRight = (Length + (Length * Width), tft_typeset.font1.HEIGHT+2 + (Length * Height))
 
 class Point():
   def __init__(self, X:int=0, Y:int=0):
@@ -100,11 +106,12 @@ lvl=1
 
 
 def DrawFrame():
-  global score, lvl
+  global score, lvl, Width, Height, Length
   TD.clear()
-  TD.tft.line(11,19,122,19,TMOMAGENTA)
-  TD.tft.line(11,19,11,240,TMOMAGENTA)
-  TD.tft.line(122,19,122,240,TMOMAGENTA)
+  TD.tft.line(TopLeft[0], TopLeft[1], TopRight[0], TopRight[1], TMOMAGENTA)
+  TD.tft.line(TopLeft[0], TopLeft[1], BotLeft[0], BotLeft[1], TMOMAGENTA)
+  TD.tft.line(TopRight[0], TopRight[1], BotRight[0], BotRight[1], TMOMAGENTA)
+  TD.tft.line(BotLeft[0], BotLeft[1], BotRight[0], BotRight[1], TMOMAGENTA)
   
   TD.typeset("Score: {}".format(score), 0, 0, font=tft_typeset.font1)
   TD.typeset("LVL:{}".format(lvl), 10, 0, font=tft_typeset.font1)
@@ -115,11 +122,11 @@ def Draw(refresh=False):
   for i in range(Width):
     for j in range(Height):
       if screen[i][j] != prev_screen[i][j] or refresh:  
-        TD.tft.fill_rect(i * Length + 12, j * Length + 20, Length-1, Length-1, blockColors[screen[i][j]])
+        TD.tft.fill_rect(i * Length + TopLeft[0]+1, j * Length + TopLeft[1]+1, Length-1, Length-1, blockColors[screen[i][j]])
         prev_screen[i][j] = screen[i][j]
         ## Draw a little specular highlight
         # if screen[i][j] != 0:
-        #   TD.tft.fill_rect(i * Length + Length + 7, j * Length + Length + 5, 2, 2, st7789.WHITE)
+        #   TD.tft.fill_rect(i * Length + (TopLeft[0] + 3), j * Length + TopLeft[1] + 3, 2, 2, st7789.WHITE)
 
 
 def ClearKeys():
@@ -173,7 +180,7 @@ def KeyPadLoop() -> bool:
 
 def PutStartPos():
   global pos, block, blocks, rot, turbo
-  pos.X = random.randint(1,7)
+  pos.X = random.randint(1,Width-3)
   pos.Y = 1
   turbo = False
   randblock = random.randint(0,len(blocks)-1)
@@ -211,9 +218,7 @@ def GetNextPosRot(rot):
     elif but_A == True:
       but_A = False
       pnext_rot = (rot + block.numRotate - 1) % block.numRotate
-
   turbo = buttons.b.value() == Pin.DRIVE_0
-
   return (pnext_pos, pnext_rot)  
 
 
@@ -263,7 +268,6 @@ def ReviseScreen(next_pos, next_rot):
       screen[next_squares[i].X][next_squares[i].Y] = block.color
     pos = next_pos
     rot = next_rot
-  
   else:
     for i in range(4):
       screen[pos.X + block.square[rot][i].X][pos.Y + block.square[rot][i].Y] = block.color
@@ -278,6 +282,7 @@ def ReviseScreen(next_pos, next_rot):
         print(f"Final score: %d" % score)
   if game_over <= 0:
     Draw()
+
 
 def ResetGame():
   global game_over, game_speed, buttons, Height, Width, score, lvl
@@ -301,8 +306,6 @@ def ResetGame():
 def setup():
     TD.clear()
     TD.tft.rotation(0)
-    TD.tft.fill(TMOMAGENTA)
-    
     DrawFrame()
     PutStartPos()
     for i in range(block.numRotate):
@@ -320,9 +323,7 @@ def loop():
       game_over += 1000  # let user revel in their score a bit longer
     game_over -= 1
     return
-
   KeyPadLoop()
-
   if game_over <= 0:
     (next_pos, next_rot) = GetNextPosRot(rot)
     ReviseScreen(next_pos, next_rot)
